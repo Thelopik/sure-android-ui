@@ -182,24 +182,24 @@ public class OsmActivity extends AppCompatActivity {
         String url = "http://10.0.2.2:8080/places";//emulator nutzt virtual router zum dev device
 
         // Request a string response from the provided URL.
-        JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONObject>()
-                {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        // display response
-                        Log.d("Response", response.toString());
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                       // textView.setText("Response is: " + response.substring(0,500));
+                        Log.d("Response", response);
+                        //response.
                     }
-                },
-                new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("Error ", error.toString());
-                    }
-                }
-        );
-        queue.add(getRequest);
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("Error ", error.toString());
+                //textView.setText("That didn't work!");
+            }
+        });
+
+        queue.add(stringRequest);
 
     }
 
