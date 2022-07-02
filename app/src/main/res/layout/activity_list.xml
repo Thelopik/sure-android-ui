@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ListActivity">
@@ -15,63 +16,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TableLayout
-        android:layout_width="379dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:id="@+id/layout2"
+        android:layout_width="409dp"
+        android:layout_height="694dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3">
-
-        <TableRow
-            android:id="@+id/Element1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
-            tools:layout_editor_absoluteX="-186dp"
-            tools:layout_editor_absoluteY="216dp"
-            tools:visibility="visible">
-
-            <ImageButton
-                android:id="@+id/imageButton4"
-                android:layout_width="wrap_content"
-                android:layout_height="100dp"
-                android:background="@drawable/vb_gebaeude_1920x476"
-                android:contentDescription="VB"
-                android:onClick="openInfoX"
-                android:src="@drawable/vb_gebaeude_1920x476"
-                tools:src="@drawable/vb_gebaeude_1920x476"
-                tools:srcCompat="@drawable/vb_gebaeude_1920x476" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <ImageButton
-                android:id="@+id/imageButton5"
-                android:layout_width="wrap_content"
-                android:layout_height="100dp"
-                android:contentDescription="Bildtext"
-                tools:srcCompat="@tools:sample/backgrounds/scenic" />
-        </TableRow>
+        app:layout_constraintTop_toBottomOf="@+id/textView3"></LinearLayout>
+</ScrollView>
 
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
-            <ImageButton
-                android:id="@+id/imageButton6"
-                android:layout_width="wrap_content"
-                android:layout_height="100dp"
-                android:contentDescription="Bildtext"
-                tools:srcCompat="@tools:sample/backgrounds/scenic" />
-        </TableRow>
-
-    </TableLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
