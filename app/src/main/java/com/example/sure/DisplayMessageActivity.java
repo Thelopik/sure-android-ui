@@ -14,7 +14,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_display_message);
 
         Intent intent = getIntent();
-        String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+        String message = "woraround msg";//intent.getStringExtra(OsmActivity.EXTRA_MESSAGE);
 
         TextView textview = findViewById(R.id.textView);
         textview.setText(message);

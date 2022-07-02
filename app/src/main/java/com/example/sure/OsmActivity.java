@@ -1,27 +1,34 @@
 package com.example.sure;
 
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.AsyncTask;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
+import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
 //import org.osmdroid.bonuspack.kml.KmlDocument;
 import org.osmdroid.config.Configuration;
@@ -37,11 +44,17 @@ import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class OsmActivity extends AppCompatActivity {
     private MapView map;
     private IMapController mapController;
+    private MyLocationNewOverlay mLocationOverlay;
+    ProgressDialog progressDialog;
 
     private static final String TAG = "OsmActivity";
 
@@ -49,158 +62,145 @@ public class OsmActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient fusedLocationClient;
 
-    @SuppressLint("MissingPermission")
+    public void openActivity(View v){
+        startActivity(new Intent(this, ListActivity.class));
+
+    }
+
+    public void openMarkerActivity(){
+        startActivity(new Intent(this, ListActivity.class));
+
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //handle permissions first, before map is created. not depicted here
-
-        //load/initialize the osmdroid configuration, this can be done
-        Context ctx = getApplicationContext();
-        Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
-        //setting this before the layout is inflated is a good idea
-        //it 'should' ensure that the map has a writable location for the map cache, even without permissions
-        //if no tiles are displayed, you can try overriding the cache path using Configuration.getInstance().setCachePath
-        //see also StorageUtils
-        //note, the load method also sets the HTTP User Agent to your application's package name, abusing osm's tile servers will get you banned based on this string
-
-        //inflate and create the map
-
         setContentView(R.layout.activity_main);
 
+        //init osmdroid configuration
+        Context ctx = getApplicationContext();
+        Configuration.getInstance().load(ctx, PreferenceManager.getDefaultSharedPreferences(ctx));
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (isStoragePermissionGranted()){
-
-            }
-        }
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            System.out.print(location);
-                        }
-                    }
-                });
-
-        Task l = fusedLocationClient.getLastLocation();
-
-        map = findViewById(R.id.mapView);
+        //init map
+        setContentView(R.layout.activity_main);
+        map = (MapView) findViewById(R.id.mapView);
         map.setTileSource(TileSourceFactory.MAPNIK);
+
+        //set controls
+        map.setBuiltInZoomControls(false);
         map.setMultiTouchControls(true);
         mapController = map.getController();
-        mapController.setZoom(15);
-        GeoPoint startPoint = new GeoPoint(51496994, -134733);
-        mapController.setCenter(startPoint);
 
-        Marker startMarker = new Marker(map);
-        startMarker.setPosition(startPoint);
-        startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-        map.getOverlays().add(startMarker);
+        //set Marker DEMO
+        createMarker(51.510858, 7.463873);
+        createMarker(51.511858, 7.463123);
+        createMarker(51.510128, 7.463873);
 
-        startMarker.setIcon(getResources().getDrawable(R.mipmap.ic_launcher));
-        startMarker.setTitle("Start point");
-        MyLocationNewOverlay myLocationoverlay = new MyLocationNewOverlay(map);
-        myLocationoverlay.enableFollowLocation();
-        myLocationoverlay.enableMyLocation();
-        map.getOverlays().add(myLocationoverlay);
-        loadKml();
+        //init center & Zoom
+        mapController.setCenter(new GeoPoint(51.518035, 7.459180));
+        mapController.setZoom(16.5);
 
-    }
+        //init center to location
+        GpsMyLocationProvider gmlp = new GpsMyLocationProvider(ctx);
+        this.mLocationOverlay = new MyLocationNewOverlay(gmlp,map);
+        this.mLocationOverlay.enableMyLocation();
+        this.mLocationOverlay.enableFollowLocation();
+        map.getOverlays().add(this.mLocationOverlay);
 
-    public void loadKml() {
-        new KmlLoader().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-    }
+        this.mLocationOverlay.enableMyLocation();
+        this.mLocationOverlay.enableFollowLocation();
+        //center to location after load of gps data
+        mLocationOverlay.runOnFirstFix(new Runnable() {
+            @Override
+            public void run() {
+                final GeoPoint myLocation = mLocationOverlay.getMyLocation();
+                if (myLocation != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            map.getController().animateTo(myLocation);
+                        }
+                    });
+                }
+                ;
+            }
+        });
 
+        //Api Request
 
-
-    class KmlLoader extends AsyncTask<Void, Void, Void> {
-        ProgressDialog progressDialog = new ProgressDialog(OsmActivity.this);
-        //KmlDocument kmlDocument;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressDialog.setMessage("Loading Project...");
-            progressDialog.show();
-        }
-
-        @SuppressLint("WrongThread")
-        @Override
-        protected Void doInBackground(Void... voids) {
-            /*
-            kmlDocument = new KmlDocument();
-            kmlDocument.parseKMLStream(getResources().openRawResource(R.raw.study_areas), null);
-            FolderOverlay kmlOverlay = (FolderOverlay)kmlDocument.mKmlRoot.buildOverlay(map, null, null,kmlDocument);
-
-             */
-            // map.getOverlays().add(kmlOverlay);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            progressDialog.dismiss();
-            map.invalidate();
-            //BoundingBox bb = kmlDocument.mKmlRoot.getBoundingBox();
-            //map.zoomToBoundingBox(bb, true);
-//            mapView.getController().setCenter(bb.getCenter());
-            super.onPostExecute(aVoid);
-        }
+        //set img
+        //URL url = new URL("http://localhost/img/sure/DAF-Hauptbahnhof-2.jpg");
     }
 
     public void onResume() {
         super.onResume();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
         if (map != null)
             map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
     }
 
     public void onPause() {
         super.onPause();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().save(this, prefs);
+
         if (map != null)
             map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 
+    private void createMarker(double lat, double lan) {
+        GeoPoint point = new GeoPoint(lat, lan);
+        Marker marker = new Marker(map);
+        marker.setPosition(point);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setInfoWindow(null);
+        map.getOverlays().add(marker);
+        navigateToMarkers();
+    }
 
-    public boolean isStoragePermissionGranted() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG, "Permission is granted");
-                return true;
-            } else {
+    public void centerToLocation(View v) {
+        final GeoPoint myLocation = mLocationOverlay.getMyLocation();
+        if (myLocation != null) {
+            map.getController().animateTo(myLocation);
+        }
+    }
 
-                Log.v(TAG, "Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-                return false;
+    private void navigateToMarkers(){
+        for(int i=0; i<map.getOverlays().size(); i++){
+            if(map.getOverlays().get(i) instanceof Marker){
+                ((Marker) map.getOverlays().get(i)).setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker, MapView mapView) {
+                        openMarkerActivity();
+                        getPlaces();
+                        return true;
+                    }
+                });
             }
-        } else { //permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG, "Permission is granted");
-            return true;
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
-            //resume tasks needing this permission
-        }
+    private void getPlaces() {
+        RequestQueue queue = Volley.newRequestQueue(OsmActivity.this);
+        String url = "http://10.0.2.2:8080/places";//emulator nutzt virtual router zum dev device
+
+        // Request a string response from the provided URL.
+        JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>()
+                {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // display response
+                        Log.d("Response", response.toString());
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("Error ", error.toString());
+                    }
+                }
+        );
+        queue.add(getRequest);
+
     }
+
 }
