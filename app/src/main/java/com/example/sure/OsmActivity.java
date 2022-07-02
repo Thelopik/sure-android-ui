@@ -27,6 +27,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONObject;
 import org.osmdroid.api.IMapController;
@@ -46,15 +48,19 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OsmActivity extends AppCompatActivity {
     private MapView map;
     private IMapController mapController;
     private MyLocationNewOverlay mLocationOverlay;
-    ProgressDialog progressDialog;
+    private ArrayList<Place> globalPlaceArrayList;
 
     private static final String TAG = "OsmActivity";
 
@@ -64,12 +70,10 @@ public class OsmActivity extends AppCompatActivity {
 
     public void openActivity(View v){
         startActivity(new Intent(this, ListActivity.class));
-
     }
 
     public void openMarkerActivity(){
         startActivity(new Intent(this, ListActivity.class));
-
     }
 
     @Override
@@ -92,9 +96,20 @@ public class OsmActivity extends AppCompatActivity {
         mapController = map.getController();
 
         //set Marker DEMO
-        createMarker(51.510858, 7.463873);
-        createMarker(51.511858, 7.463123);
-        createMarker(51.510128, 7.463873);
+        getPlaces(new VolleyCallback(){
+            @Override
+            public void onSuccess(ArrayList<Place> result) {
+                globalPlaceArrayList = result;
+
+                for (Place p : globalPlaceArrayList) {
+                    createMarker(p.getLat(), p.getLon());
+                }
+                Log.d("Set Marker ", globalPlaceArrayList.toString());
+            }
+            @Override
+            public void onSuccess(Place place) {
+            }
+        });
 
         //init center & Zoom
         mapController.setCenter(new GeoPoint(51.518035, 7.459180));
@@ -169,7 +184,6 @@ public class OsmActivity extends AppCompatActivity {
                     @Override
                     public boolean onMarkerClick(Marker marker, MapView mapView) {
                         openMarkerActivity();
-                        getPlaces();
                         return true;
                     }
                 });
@@ -177,30 +191,59 @@ public class OsmActivity extends AppCompatActivity {
         }
     }
 
-    private void getPlaces() {
+    private void getPlaces(final VolleyCallback callback) {
         RequestQueue queue = Volley.newRequestQueue(OsmActivity.this);
         String url = "http://10.0.2.2:8080/places";//emulator nutzt virtual router zum dev device
 
-        // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                       // textView.setText("Response is: " + response.substring(0,500));
-                        Log.d("Response", response);
-                        //response.
+                        Log.d("Response ", response);
+                        try {
+                            Gson gson = new Gson();
+                            Type listType = new TypeToken<ArrayList<Place>>() {}.getType();
+                            ArrayList<Place> placeArrayList = new Gson().fromJson(response , listType);
+                            callback.onSuccess(placeArrayList);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.d("Error ", error.toString());
-                //textView.setText("That didn't work!");
             }
         });
-
         queue.add(stringRequest);
+        Log.d("String Response ", stringRequest.toString());
+    }
 
+    private void getPlaceById(String id, final VolleyCallback callback) {
+        RequestQueue queue = Volley.newRequestQueue(OsmActivity.this);
+        String url = "http://10.0.2.2:8080/places/"+ id;//emulator nutzt virtual router zum dev device
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("Response ", response);
+                        try {
+                            Gson gson = new Gson();
+                            Place place = new Gson().fromJson(response , Place.class);
+                            callback.onSuccess(place);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("Error ", error.toString());
+            }
+        });
+        queue.add(stringRequest);
+        Log.d("String Response ", stringRequest.toString());
     }
 
 }
