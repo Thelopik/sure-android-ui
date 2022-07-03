@@ -2,12 +2,17 @@ package com.example.sure;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -129,6 +134,10 @@ public class OsmActivity extends AppCompatActivity {
         marker.setPosition(point);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setInfoWindow(null);
+        Drawable d = ResourcesCompat.getDrawable(getResources(), R.drawable.location, null);
+        //Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
+        //Drawable dr = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, (int) (48.0f * getResources().getDisplayMetrics().density), (int) (48.0f * getResources().getDisplayMetrics().density), true));
+        marker.setIcon(d);
         map.getOverlays().add(marker);
         setOnClickForMarker(marker, p);
     }
