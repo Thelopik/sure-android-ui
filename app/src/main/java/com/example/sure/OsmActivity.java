@@ -73,10 +73,6 @@ public class OsmActivity extends AppCompatActivity {
         startActivity(new Intent(this, ListActivity.class));
     }
 
-    public void openMarkerActivity(){
-        startActivity(new Intent(this, ListActivity.class));
-    }
-
     public void openInfoX(Place p){
         Intent intent = new Intent(this, InfoActivity.class);
 
