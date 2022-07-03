@@ -77,6 +77,19 @@ public class OsmActivity extends AppCompatActivity {
         startActivity(new Intent(this, ListActivity.class));
     }
 
+    public void openInfoX(Place p){
+        Intent intent = new Intent(this, InfoActivity.class);
+
+        intent.putExtra("ID", String.valueOf(p.getId()));
+        intent.putExtra("NAME", p.getName());
+        intent.putExtra("IMG", p.getImg());
+        intent.putExtra("TEXT", p.getText());
+        intent.putExtra("LAT", String.valueOf(p.getLat()));
+        intent.putExtra("LON", String.valueOf(p.getLon()));
+
+        startActivity(intent);
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,7 +114,7 @@ public class OsmActivity extends AppCompatActivity {
             @Override
             public void onSuccess(ArrayList<Place> result) {
                 for (Place p : result) {
-                    createMarker(p.getLat(), p.getLon());
+                    createMarker(p);
                 }
                 Log.d("Set Marker ", result.toString());
             }
@@ -152,14 +165,14 @@ public class OsmActivity extends AppCompatActivity {
             map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
     }
 
-    private void createMarker(double lat, double lan) {
-        GeoPoint point = new GeoPoint(lat, lan);
+    private void createMarker(Place p) {
+        GeoPoint point = new GeoPoint(p.getLat(), p.getLon());
         Marker marker = new Marker(map);
         marker.setPosition(point);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setInfoWindow(null);
         map.getOverlays().add(marker);
-        setOnClickForMarker(marker);
+        setOnClickForMarker(marker, p);
     }
 
     public void centerToLocation(View v) {
@@ -169,12 +182,12 @@ public class OsmActivity extends AppCompatActivity {
         }
     }
 
-    private void setOnClickForMarker(Marker marker){
+    private void setOnClickForMarker(Marker marker, Place p){
 
         marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker, MapView mapView) {
-                openMarkerActivity();
+                openInfoX(p);
                 return true;
             }
         });
