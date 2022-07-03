@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -96,15 +97,13 @@ public class OsmActivity extends AppCompatActivity {
         mapController = map.getController();
 
         //set Marker DEMO
-        getPlaces(new VolleyCallback(){
+        RequestHandler.getPlaces(this, new VolleyCallback(){
             @Override
             public void onSuccess(ArrayList<Place> result) {
-                globalPlaceArrayList = result;
-
-                for (Place p : globalPlaceArrayList) {
+                for (Place p : result) {
                     createMarker(p.getLat(), p.getLon());
                 }
-                Log.d("Set Marker ", globalPlaceArrayList.toString());
+                Log.d("Set Marker ", result.toString());
             }
             @Override
             public void onSuccess(Place place) {
@@ -122,8 +121,6 @@ public class OsmActivity extends AppCompatActivity {
         this.mLocationOverlay.enableFollowLocation();
         map.getOverlays().add(this.mLocationOverlay);
 
-        this.mLocationOverlay.enableMyLocation();
-        this.mLocationOverlay.enableFollowLocation();
         //center to location after load of gps data
         mLocationOverlay.runOnFirstFix(new Runnable() {
             @Override
@@ -140,11 +137,6 @@ public class OsmActivity extends AppCompatActivity {
                 ;
             }
         });
-
-        //Api Request
-
-        //set img
-        //URL url = new URL("http://localhost/img/sure/DAF-Hauptbahnhof-2.jpg");
     }
 
     public void onResume() {
@@ -167,7 +159,7 @@ public class OsmActivity extends AppCompatActivity {
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setInfoWindow(null);
         map.getOverlays().add(marker);
-        navigateToMarkers();
+        setOnClickForMarker(marker);
     }
 
     public void centerToLocation(View v) {
@@ -177,73 +169,14 @@ public class OsmActivity extends AppCompatActivity {
         }
     }
 
-    private void navigateToMarkers(){
-        for(int i=0; i<map.getOverlays().size(); i++){
-            if(map.getOverlays().get(i) instanceof Marker){
-                ((Marker) map.getOverlays().get(i)).setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(Marker marker, MapView mapView) {
-                        openMarkerActivity();
-                        return true;
-                    }
-                });
-            }
-        }
-    }
+    private void setOnClickForMarker(Marker marker){
 
-    private void getPlaces(final VolleyCallback callback) {
-        RequestQueue queue = Volley.newRequestQueue(OsmActivity.this);
-        String url = "http://10.0.2.2:8080/places";//emulator nutzt virtual router zum dev device
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d("Response ", response);
-                        try {
-                            Gson gson = new Gson();
-                            Type listType = new TypeToken<ArrayList<Place>>() {}.getType();
-                            ArrayList<Place> placeArrayList = new Gson().fromJson(response , listType);
-                            callback.onSuccess(placeArrayList);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
+        marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("Error ", error.toString());
+            public boolean onMarkerClick(Marker marker, MapView mapView) {
+                openMarkerActivity();
+                return true;
             }
         });
-        queue.add(stringRequest);
-        Log.d("String Response ", stringRequest.toString());
     }
-
-    private void getPlaceById(String id, final VolleyCallback callback) {
-        RequestQueue queue = Volley.newRequestQueue(OsmActivity.this);
-        String url = "http://10.0.2.2:8080/places/"+ id;//emulator nutzt virtual router zum dev device
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d("Response ", response);
-                        try {
-                            Gson gson = new Gson();
-                            Place place = new Gson().fromJson(response , Place.class);
-                            callback.onSuccess(place);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("Error ", error.toString());
-            }
-        });
-        queue.add(stringRequest);
-        Log.d("String Response ", stringRequest.toString());
-    }
-
 }

@@ -28,6 +28,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.squareup.picasso.Picasso;
 
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -38,24 +39,14 @@ import java.util.List;
 public class ListActivity extends AppCompatActivity {
     private ArrayList<Place> globalPlaceArrayList;
 
-    public static final String EXTRA_MESSAGE ="com.example.sure.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        getPlaces(new VolleyCallback(){
+        RequestHandler.getPlaces(this, new VolleyCallback(){
             @Override
             public void onSuccess(ArrayList<Place> result) {
-                globalPlaceArrayList = result;
-
-                LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout2);
-                LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT);
-                for (Place p : globalPlaceArrayList) {
-                    createListelem(linearLayout, params2, p.getId(), p.getImg());
-                }
-
+                createListElements(result);
             }
             @Override
             public void onSuccess(Place place) {
@@ -63,67 +54,46 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
-    public void openInfoX(View v){
+    public void openInfoX(Place p, View v){
         Intent intent = new Intent(this, InfoActivity.class);
-        String message = v.getContentDescription().toString();
+        int id = v.getId();
 
-        intent.putExtra(EXTRA_MESSAGE, message);
+        intent.putExtra("ID", String.valueOf(p.getId()));
+        intent.putExtra("NAME", p.getName());
+        intent.putExtra("IMG", p.getImg());
+        intent.putExtra("TEXT", p.getText());
+        intent.putExtra("LAT", String.valueOf(p.getLat()));
+        intent.putExtra("LON", String.valueOf(p.getLon()));
 
         startActivity(intent);
     }
 
-    public void createListelem(LinearLayout linearLayout, ViewGroup.LayoutParams params, int i, String img){
+    public void createListElements(ArrayList<Place> result) {
+        globalPlaceArrayList = result;
 
-            System.out.println(i);
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout2);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        for (Place p : globalPlaceArrayList) {
             ImageButton imageButton = new ImageButton(this);
-            imageButton.setId(i);
+            imageButton.setId(p.getId());
             final int imgId_ = imageButton.getId();
             try{
-                //Uri uri = new Uri(img);
-                //imageButton.setImageURI(uri);
+                Picasso.with(this).load(p.getImg()).into(imageButton);
+                imageButton.setScaleType(ImageView.ScaleType.FIT_XY);
+                imageButton.setAdjustViewBounds(true);
+                linearLayout.addView(imageButton, params);
+                imageButton.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View view) {
+                        Log.d("BUTTON CLICKED", "button " + p.getId() + " clicked");
+                        openInfoX(p, view);
+                    }
+                });
             } catch(Exception e){}
 
-
-
-        imageButton.setScaleType(ImageView.ScaleType.FIT_XY);
-            imageButton.setAdjustViewBounds(true);
-            linearLayout.addView(imageButton, params);
-            System.out.println("button " + i + " erzeugt");
-            imageButton.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    Toast.makeText(view.getContext(),
-                                    "Button clicked index = " + imgId_, Toast.LENGTH_SHORT)
-                            .show();
-                }
-            });
+            Log.d("BUTTON CREATED", "button mit Place ID " + p.getId() + " erzeugt");
         }
-
-
-    private void getPlaces(final VolleyCallback callback) {
-        RequestQueue queue = Volley.newRequestQueue(ListActivity.this);
-        String url = "http://10.0.2.2:8080/places";//emulator nutzt virtual router zum dev device
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d("Response ", response);
-                        try {
-                            Gson gson = new Gson();
-                            Type listType = new TypeToken<ArrayList<Place>>() {}.getType();
-                            ArrayList<Place> placeArrayList = new Gson().fromJson(response , listType);
-                            callback.onSuccess(placeArrayList);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("Error ", error.toString());
-            }
-        });
-        queue.add(stringRequest);
-        Log.d("String Response ", stringRequest.toString());
     }
+
 }
