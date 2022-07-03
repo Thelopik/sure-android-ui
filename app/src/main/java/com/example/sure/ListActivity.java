@@ -63,6 +63,7 @@ public class ListActivity extends AppCompatActivity {
                 Picasso.with(this).load(p.getImg()).into(imageButton);
                 imageButton.setScaleType(ImageView.ScaleType.FIT_XY);
                 imageButton.setAdjustViewBounds(true);
+                imageButton.setContentDescription(p.getName());
                 linearLayout.addView(imageButton, params);
                 imageButton.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View view) {
@@ -75,5 +76,4 @@ public class ListActivity extends AppCompatActivity {
             Log.d("BUTTON CREATED", "button mit Place ID " + p.getId() + " erzeugt");
         }
     }
-
 }
