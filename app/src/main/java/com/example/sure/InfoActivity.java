@@ -24,8 +24,6 @@ public class InfoActivity extends AppCompatActivity {
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         imageView.setAdjustViewBounds(true);
 
-        TextView textViewId = findViewById(R.id.textViewId);
-        textViewId.setText(extras.getString("ID"));
         TextView textViewName = findViewById(R.id.textViewName);
         textViewName.setText(extras.getString("NAME"));
         TextView textViewText = findViewById(R.id.textViewText);

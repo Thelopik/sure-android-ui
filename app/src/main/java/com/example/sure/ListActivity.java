@@ -26,6 +26,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
@@ -52,6 +53,11 @@ public class ListActivity extends AppCompatActivity {
             public void onSuccess(Place place) {
             }
         });
+    }
+
+    public void openMap(View v){
+        Intent i = new Intent(this, OsmActivity.class);
+        startActivity(i);
     }
 
     public void openInfoX(Place p, View v){
