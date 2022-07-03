@@ -177,7 +177,7 @@ VALUES
 'Der Loewenhof ist ein Gebaeude in der Innenstadt von Dortmund. Er beherbergte im Laufe seiner Geschichte eines der groeßten Konzert-Cafés Westdeutschlands, war Firmensitz der Heinrich August Schulte Eisenhandlung und ist heute Sitz der Volkshochschule Dortmund.',
 51.517295, 7.463219),
 (28,
-'Loewenhof Stahlhaus',
+'Schwebebahn Wuppertal',
 'http://10.0.2.2/img/sure/tuffi.jfif',
 'Tuffi (* 1946 in Indien; † 1989 in Paris) war eine asiatische Elefantenkuh des Zirkus Althoff, die am 21. Juli 1950 im Alter von vier Jahren in Wuppertal aus der fahrenden Schwebebahn in die Wupper sprang.',
 51.268568, 7.193653),
