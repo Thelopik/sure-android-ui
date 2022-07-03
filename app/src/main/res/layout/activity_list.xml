@@ -45,9 +45,10 @@
             android:layout_margin="16dp"
             android:onClick="openMap"
             android:src="@android:drawable/ic_dialog_map"
-            app:backgroundTint="@color/purple_200"
+            app:backgroundTint="@color/purple_500"
             app:layout_anchor="@id/layout2"
-            app:layout_anchorGravity="bottom|right|end" />
+            app:layout_anchorGravity="bottom|right|end"
+            app:tint="@android:color/white" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
