@@ -36,16 +36,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ListActivity"/>
         </activity>
+
         <activity
             android:name=".ListActivity"
             android:exported="true">
-        </activity>
-        <activity
-            android:name=".DisplayMessageActivity"
-            android:parentActivityName=".OsmActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".OsmActivity" />
         </activity>
     </application>
 
