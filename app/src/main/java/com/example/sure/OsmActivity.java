@@ -135,8 +135,6 @@ public class OsmActivity extends AppCompatActivity {
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         marker.setInfoWindow(null);
         Drawable d = ResourcesCompat.getDrawable(getResources(), R.drawable.location, null);
-        //Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
-        //Drawable dr = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, (int) (48.0f * getResources().getDisplayMetrics().density), (int) (48.0f * getResources().getDisplayMetrics().density), true));
         marker.setIcon(d);
         map.getOverlays().add(marker);
         setOnClickForMarker(marker, p);
